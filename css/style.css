@@ -24,6 +24,7 @@
 html,body{margin:0;padding:0;}
 html{scroll-behavior:smooth;}
 html, body, main, section{overflow-anchor:none;}
+html{touch-action:manipulation;}
 
 body{
   background:var(--bg);
