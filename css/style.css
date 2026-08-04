@@ -96,12 +96,18 @@ h1,h2,h3,p{margin:0;}
   z-index:50;
   pointer-events:none;
 }
-.top-logo{display:block;height:22px;width:auto;transition:filter .4s var(--ease);}
+.logo-btn{
+  display:block;
+  background:none;border:none;padding:0;margin:0;
+  pointer-events:auto;
+  cursor:none;
+}
+.top-logo{display:block;height:27px;width:auto;transition:filter .4s var(--ease);}
 .top-right{display:flex;align-items:center;gap:22px;pointer-events:none;}
 .top-tag{font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-dim);transition:color .4s var(--ease);}
 #top-bar.on-dark .top-logo{filter:invert(1) brightness(1.3);}
 #top-bar.on-dark .top-tag{color:var(--dark-fg-dim);}
-@media (max-width:640px){ .top-tag{display:none;} }
+@media (max-width:640px), (min-width:641px) and (orientation:portrait) and (hover:none){ .top-tag{display:none;} }
 
 #lang-toggle{
   pointer-events:auto;
@@ -132,7 +138,11 @@ html[data-lang="en"] #top-bar.on-dark #lang-toggle .lang-opt[data-lang="en"]{col
   height:100vh;width:60px;
   z-index:60;
   display:flex;align-items:center;
+  transition:width .5s var(--ease);
 }
+/* The real hit-box grows with the panel so moving the mouse onto a revealed
+   title never counts as "leaving" the nav (which would schedule a close). */
+#side-nav.hovering{width:min(580px, 90vw);}
 #side-nav::before{
   content:'';
   position:absolute;inset:0 auto 0 0;
@@ -144,7 +154,7 @@ html[data-lang="en"] #top-bar.on-dark #lang-toggle .lang-opt[data-lang="en"]{col
   pointer-events:none;
   z-index:-1;
 }
-#side-nav.hovering::before{width:min(540px, 90vw);}
+#side-nav.hovering::before{width:min(580px, 90vw);}
 
 .side-nav-track{
   display:flex;flex-direction:column;justify-content:center;
@@ -172,42 +182,41 @@ html[data-lang="en"] #top-bar.on-dark #lang-toggle .lang-opt[data-lang="en"]{col
   transition:opacity .35s var(--ease), transform .35s var(--ease);
   white-space:nowrap;
 }
-.nav-num{font-family:var(--sans);font-weight:500;font-size:.68rem;letter-spacing:.08em;color:var(--fg-dim);}
-.nav-title{font-family:var(--sans);font-weight:600;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--fg);}
+.nav-num{font-family:var(--sans);font-weight:500;font-size:.68rem;letter-spacing:.08em;color:var(--fg-faint);}
+.nav-title{font-family:var(--sans);font-weight:600;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--fg-dim);transition:color .3s var(--ease);}
 
-.nav-item.peek .nav-line{width:30px;background:var(--fg);}
-.nav-item.peek .nav-text{opacity:1;transform:translateX(0);}
+/* Opening the panel (mouse approach on desktop, edge-swipe on touch) reveals
+   every title at once; each one darkens on its own hover, the current
+   section's title stays dark to mark your place. */
+#side-nav.hovering .nav-text{opacity:1;transform:translateX(0);}
+#side-nav.hovering .nav-item:hover .nav-line{width:30px;background:var(--fg);}
+#side-nav.hovering .nav-item:hover .nav-title{color:var(--fg);}
 
 .nav-item.active .nav-line{width:30px;background:var(--fg);}
+.nav-item.active .nav-title{color:var(--fg);}
 
 #side-nav.on-dark::before{background:linear-gradient(90deg, rgba(28,28,28,.96) 0%, rgba(28,28,28,.82) 55%, rgba(28,28,28,0) 100%);}
 #side-nav.on-dark .nav-line{background:var(--nav-line-dark);}
-#side-nav.on-dark .nav-item.peek .nav-line,
-#side-nav.on-dark .nav-item.active .nav-line{background:var(--dark-fg);}
+#side-nav.on-dark .nav-item.active .nav-line,
+#side-nav.on-dark.hovering .nav-item:hover .nav-line{background:var(--dark-fg);}
 #side-nav.on-dark .nav-num{color:var(--dark-fg-dim);}
-#side-nav.on-dark .nav-title{color:var(--dark-fg);}
+#side-nav.on-dark .nav-title{color:var(--dark-fg-dim);}
+#side-nav.on-dark .nav-item.active .nav-title,
+#side-nav.on-dark.hovering .nav-item:hover .nav-title{color:var(--dark-fg);}
 
-/* Tablets (touch, wider than a phone) keep the full nav — titles + click —
-   just opened by tapping a tick instead of hovering (see script.js). */
-html.touch .nav-item{cursor:default;}
-
-@media (max-width:640px){
+/* Phone, and tablet held upright (portrait + no real hover): condensed
+   resting ticks. Still fully interactive — opened by an edge swipe instead
+   of a mouse approach (see script.js) — showing every title just like desktop. */
+@media (max-width:640px), (min-width:641px) and (orientation:portrait) and (hover:none){
   #side-nav{width:30px;}
+  #side-nav.hovering{width:min(300px, 82vw);}
   .side-nav-track{padding-left:12px;gap:9px;}
   .nav-line{width:9px;}
   .nav-item{padding:10px 18px 10px 0;margin:-10px -18px -10px 0;}
-  .nav-item.peek .nav-line{width:20px;}
+  .nav-item.active .nav-line{width:18px;}
   .nav-num{font-size:.72rem;}
   .nav-title{font-size:.76rem;}
   #side-nav.hovering::before{width:min(300px, 82vw);}
-
-  /* Phones (touch, ≤640px): passive scroll indicator only — no menu, no
-     titles, nothing clickable. Only the active tick still travels with scroll. */
-  html.touch #side-nav::before{display:none;}
-  html.touch .nav-text{display:none;}
-  html.touch .nav-item{pointer-events:none;padding:0;margin:0;}
-  html.touch .nav-line{width:6px;}
-  html.touch .nav-item.active .nav-line{width:14px;}
 }
 
 /* ============ LAYOUT ============ */
@@ -587,7 +596,7 @@ section{
   #contact{padding-top:100px;}
 }
 
-@media (max-width:640px){
+@media (max-width:640px), (min-width:641px) and (orientation:portrait) and (hover:none){
   section{padding-left:32px;padding-right:24px;}
   #hero{padding-left:32px;padding-right:24px;}
   #top-bar{padding-left:32px;}
@@ -604,10 +613,10 @@ section{
 
   .site-footer{flex-direction:column;align-items:flex-start;gap:14px;}
 
-  /* smooth CSS-gradient mist on phones — the desktop photo, forced into a
-     tall narrow "cover" crop, either zoomed into its blank center (invisible)
-     or tiled/repeated (double, hard-edged). A soft radial wash reads cleanly
-     at any phone aspect ratio instead. */
+  /* smooth CSS-gradient mist on phones and portrait tablets — the desktop
+     photo, forced into a tall narrow "cover" crop, either zoomed into its
+     blank center (invisible) or tiled/repeated (double, hard-edged). A soft
+     radial wash reads cleanly at any narrow/portrait aspect ratio instead. */
   .hero-mist::after{display:none;}
   .hero-mist{
     inset:-8% -8%;
@@ -621,4 +630,18 @@ section{
     opacity:1;
     animation-duration:16s;
   }
+}
+
+/* Tablet held upright specifically: the top gradient wash sat right under
+   the header and read as an odd smudge on the taller canvas — drop it and
+   pull the sections closer together (they had a lot more empty air than on
+   a phone at this width). */
+@media (min-width:641px) and (orientation:portrait) and (hover:none){
+  .hero-mist{
+    background-image:
+      radial-gradient(ellipse 55% 32% at 78% 46%, rgba(120,120,120,.32), transparent 64%),
+      radial-gradient(ellipse 75% 38% at 45% 92%, rgba(80,80,80,.3), transparent 68%);
+  }
+  .page{padding-top:56px;padding-bottom:56px;}
+  #contact{padding-top:56px;}
 }

@@ -4,9 +4,6 @@
 /* ---------- touch detection ---------- */
 var isTouch = window.matchMedia("(hover: none), (pointer: coarse)").matches;
 if(isTouch){ document.documentElement.classList.add("touch"); }
-/* Phones keep the side nav as a passive scroll indicator; tablets (wider
-   touch screens) get the full nav back, opened by tapping a tick directly. */
-var isTabletTouch = isTouch && window.innerWidth > 640;
 
 /* ---------- footer year ---------- */
 var yearEl = document.getElementById("year");
@@ -38,53 +35,76 @@ sections.forEach(function(sec){
   item.appendChild(text);
   track.appendChild(item);
 
-  if(!isTouch || isTabletTouch){
-    item.addEventListener("click", function(){
-      if(isTabletTouch){
-        navItems.forEach(function(n){ n.el.classList.toggle("peek", n.el === item); });
-        sideNav.classList.add("hovering");
-      }
-      sec.scrollIntoView({behavior:"smooth", block:"start"});
-    });
-  }
+  item.addEventListener("click", function(){
+    /* On touch, the nav is closed by default (see the swipe handler below) —
+       a stray tap shouldn't navigate until the panel has been swiped open. */
+    if(isTouch && !sideNav.classList.contains("hovering")) return;
+    sec.scrollIntoView({behavior:"smooth", block:"start"});
+    if(isTouch){ closeSideNav(); }
+  });
 
   navItems.push({el:item, line:line, section:sec});
 });
 
-/* ---------- side nav: reveal the title whose own line the mouse is nearest to (desktop only) ---------- */
-var NAV_HIT_RADIUS = 17; /* px — mouse must be within this radius of a tick's own center to reveal it */
+/* ---------- side nav open/close ----------
+   Desktop (and any device with a real pointer): opens as soon as the mouse
+   approaches the column of ticks, closes a moment after it leaves so it
+   doesn't flicker. Touch: opened/closed with a horizontal edge swipe. */
+var NAV_CLOSE_DELAY = 350; /* ms */
+var navCloseTimer = null;
 
-if(!isTouch && sideNav){
-  sideNav.addEventListener("mouseleave", function(){
-    sideNav.classList.remove("hovering");
-    navItems.forEach(function(n){ n.el.classList.remove("peek"); });
-  });
-  sideNav.addEventListener("mousemove", function(e){
-    var closest = null, closestDist = Infinity;
-    navItems.forEach(function(n){
-      var r = n.line.getBoundingClientRect();
-      var cx = r.left + r.width / 2;
-      var cy = r.top + r.height / 2;
-      var dx = e.clientX - cx;
-      var dy = e.clientY - cy;
-      var d = Math.sqrt(dx * dx + dy * dy);
-      if(d < closestDist){ closestDist = d; closest = n; }
-    });
-    if(closest && closestDist <= NAV_HIT_RADIUS){
-      sideNav.classList.add("hovering");
-      navItems.forEach(function(n){ n.el.classList.toggle("peek", n === closest); });
-    } else {
-      sideNav.classList.remove("hovering");
-      navItems.forEach(function(n){ n.el.classList.remove("peek"); });
-    }
-  });
+function openSideNav(){
+  clearTimeout(navCloseTimer);
+  if(sideNav) sideNav.classList.add("hovering");
+}
+function closeSideNav(){
+  if(sideNav) sideNav.classList.remove("hovering");
+}
+function scheduleSideNavClose(){
+  clearTimeout(navCloseTimer);
+  navCloseTimer = setTimeout(closeSideNav, NAV_CLOSE_DELAY);
 }
 
-/* On phones the side nav stays a passive scroll indicator only (no titles,
-   no tap navigation — see the CSS touch+max-width:640px rules). On tablets
-   it behaves like desktop's, just opened by tapping a tick instead of
-   hovering (handled in the click listener above). The active tick always
-   travels up/down with scroll via activeObserver below. */
+if(sideNav){
+  sideNav.addEventListener("mouseenter", openSideNav);
+  sideNav.addEventListener("mouseleave", scheduleSideNavClose);
+}
+
+/* ---------- side nav: open/close with a horizontal swipe (phone & tablet) ---------- */
+if(isTouch && sideNav){
+  var swipeStartX = 0, swipeStartY = 0, swipeTracking = false, swipeActedOn = false;
+  var SWIPE_EDGE_ZONE = 48;   /* px from the left edge an opening swipe must start in */
+  var SWIPE_THRESHOLD = 45;   /* px of horizontal travel needed to trigger */
+
+  document.addEventListener("touchstart", function(e){
+    var t = e.touches[0];
+    swipeStartX = t.clientX;
+    swipeStartY = t.clientY;
+    swipeTracking = true;
+    swipeActedOn = false;
+  }, {passive:true});
+
+  document.addEventListener("touchmove", function(e){
+    if(!swipeTracking || swipeActedOn) return;
+    var t = e.touches[0];
+    var dx = t.clientX - swipeStartX;
+    var dy = t.clientY - swipeStartY;
+    if(Math.abs(dx) < Math.abs(dy)) return; /* vertical scroll, ignore */
+
+    var isOpen = sideNav.classList.contains("hovering");
+    if(!isOpen && swipeStartX <= SWIPE_EDGE_ZONE && dx > SWIPE_THRESHOLD){
+      openSideNav();
+      swipeActedOn = true;
+    } else if(isOpen && dx < -SWIPE_THRESHOLD){
+      closeSideNav();
+      swipeActedOn = true;
+    }
+  }, {passive:true});
+
+  document.addEventListener("touchend", function(){
+    swipeTracking = false;
+  }, {passive:true});
+}
 
 /* ---------- active section highlight ---------- */
 var activeObserver = new IntersectionObserver(function(entries){
@@ -237,26 +257,30 @@ function runIntro(){
       requestAnimationFrame(function(){
         introLogo.classList.add("in");
 
-        setTimeout(function(){
-          var r = introLogo.getBoundingClientRect();
-          var dotX = r.left + r.width * DOT_X_FRAC;
-          var dotY = r.top + r.height * DOT_Y_FRAC;
-          var dotSize = Math.max(6, r.width * DOT_SIZE_FRAC);
+        if(!isTouch){
+          setTimeout(function(){
+            var r = introLogo.getBoundingClientRect();
+            var dotX = r.left + r.width * DOT_X_FRAC;
+            var dotY = r.top + r.height * DOT_Y_FRAC;
+            var dotSize = Math.max(6, r.width * DOT_SIZE_FRAC);
 
-          cursor.style.width = dotSize + "px";
-          cursor.style.height = dotSize + "px";
-          cursor.style.left = dotX + "px";
-          cursor.style.top = dotY + "px";
-          curX = dotX; curY = dotY; mouseX = dotX; mouseY = dotY;
+            cursor.style.width = dotSize + "px";
+            cursor.style.height = dotSize + "px";
+            cursor.style.left = dotX + "px";
+            cursor.style.top = dotY + "px";
+            curX = dotX; curY = dotY; mouseX = dotX; mouseY = dotY;
 
-          cursor.classList.add("show");
-        }, REVEAL_MS);
+            cursor.classList.add("show");
+          }, REVEAL_MS);
+        }
 
         setTimeout(function(){
           introEl.classList.add("fade-out");
           introLogo.classList.add("intro-exit");
-          cursor.style.width = "";
-          cursor.style.height = "";
+          if(!isTouch){
+            cursor.style.width = "";
+            cursor.style.height = "";
+          }
           setTimeout(function(){
             introEl.style.display = "none";
             hasMouse = false;
@@ -270,11 +294,36 @@ function runIntro(){
   else{ introLogo.addEventListener("load", start, {once:true}); }
 }
 
-if(!isTouch){
-  runIntro();
-} else {
-  introEl.classList.add("fade-out");
-  setTimeout(function(){ introEl.style.display = "none"; }, 400);
+/* Plays on every device — the logo reveal itself isn't a desktop-only
+   flourish; only the cursor-dot handoff above is skipped on touch. */
+runIntro();
+
+/* ---------- click the logo: scroll to top, then replay the intro ---------- */
+var logoHome = document.getElementById("logo-home");
+if(logoHome){
+  logoHome.addEventListener("click", function(){
+    closeSideNav();
+    var alreadyAtTop = window.scrollY < 2;
+    window.scrollTo({top:0, behavior:"smooth"});
+
+    function replay(){
+      introEl.style.display = "flex";
+      introEl.classList.remove("fade-out");
+      introLogo.classList.remove("in", "intro-exit");
+      cursor.classList.remove("show");
+      void introLogo.offsetWidth; /* force reflow so the transition retriggers */
+      runIntro();
+    }
+
+    if(alreadyAtTop){
+      replay();
+      return;
+    }
+    var done = false;
+    function finish(){ if(done) return; done = true; replay(); }
+    window.addEventListener("scrollend", finish, {once:true});
+    setTimeout(finish, 900); /* fallback for browsers without scrollend */
+  });
 }
 
 })();
