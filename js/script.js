@@ -322,31 +322,13 @@ function runIntro(){
    flourish; only the cursor-dot handoff above is skipped on touch. */
 runIntro();
 
-/* ---------- click the logo: scroll to top, then replay the intro ---------- */
+/* ---------- click the logo: a real reload, landing back at the top exactly
+   like a fresh visit (dropping any hash avoids the browser restoring the
+   old scroll position on same-URL navigation) ---------- */
 var logoHome = document.getElementById("logo-home");
 if(logoHome){
   logoHome.addEventListener("click", function(){
-    closeSideNav();
-    var alreadyAtTop = window.scrollY < 2;
-    window.scrollTo({top:0, behavior:"smooth"});
-
-    function replay(){
-      introEl.style.display = "flex";
-      introEl.classList.remove("fade-out");
-      introLogo.classList.remove("in", "intro-exit");
-      cursor.classList.remove("show");
-      void introLogo.offsetWidth; /* force reflow so the transition retriggers */
-      runIntro();
-    }
-
-    if(alreadyAtTop){
-      replay();
-      return;
-    }
-    var done = false;
-    function finish(){ if(done) return; done = true; replay(); }
-    window.addEventListener("scrollend", finish, {once:true});
-    setTimeout(finish, 900); /* fallback for browsers without scrollend */
+    window.location.href = window.location.pathname + window.location.search;
   });
 }
 
