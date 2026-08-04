@@ -74,39 +74,9 @@ if(!isTouch && sideNav){
   });
 }
 
-/* ---------- side nav: tap-to-open menu on touch devices ---------- */
-if(isTouch && sideNav){
-  var navOpen = false;
-
-  function openNav(){
-    navOpen = true;
-    sideNav.classList.add("hovering");
-    navItems.forEach(function(n){ n.el.classList.add("peek"); });
-  }
-  function closeNav(){
-    navOpen = false;
-    sideNav.classList.remove("hovering");
-    navItems.forEach(function(n){ n.el.classList.remove("peek"); });
-  }
-
-  sideNav.addEventListener("click", function(e){
-    if(!navOpen){
-      openNav();
-      e.preventDefault();
-      return;
-    }
-    var itemEl = e.target.closest(".nav-item");
-    if(itemEl){
-      var match = navItems.find(function(n){ return n.el === itemEl; });
-      if(match){ match.section.scrollIntoView({behavior:"smooth", block:"start"}); }
-    }
-    closeNav();
-  });
-
-  document.addEventListener("click", function(e){
-    if(navOpen && !sideNav.contains(e.target)){ closeNav(); }
-  });
-}
+/* On touch devices (phone & tablet) the side nav is a passive scroll
+   indicator only: no tap-to-open menu, no titles, no navigation on tap.
+   The active tick still travels up/down with scroll via activeObserver below. */
 
 /* ---------- active section highlight ---------- */
 var activeObserver = new IntersectionObserver(function(entries){

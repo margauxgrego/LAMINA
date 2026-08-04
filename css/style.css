@@ -186,6 +186,14 @@ html[data-lang="en"] #top-bar.on-dark #lang-toggle .lang-opt[data-lang="en"]{col
 #side-nav.on-dark .nav-num{color:var(--dark-fg-dim);}
 #side-nav.on-dark .nav-title{color:var(--dark-fg);}
 
+/* Phone & tablet (touch): passive scroll indicator only — no menu, no
+   titles, nothing clickable. Only the active tick still travels with scroll. */
+html.touch #side-nav::before{display:none;}
+html.touch .nav-text{display:none;}
+html.touch .nav-item{pointer-events:none;padding:0;margin:0;}
+html.touch .nav-line{width:6px;}
+html.touch .nav-item.active .nav-line{width:14px;}
+
 @media (max-width:640px){
   #side-nav{width:30px;}
   .side-nav-track{padding-left:12px;gap:9px;}
@@ -575,9 +583,9 @@ section{
 }
 
 @media (max-width:640px){
-  section{padding-left:46px;padding-right:5vw;}
-  #hero{padding-left:46px;padding-right:5vw;}
-  #top-bar{padding-left:46px;}
+  section{padding-left:32px;padding-right:24px;}
+  #hero{padding-left:32px;padding-right:24px;}
+  #top-bar{padding-left:32px;}
 
   .hero-logo-img{width:min(260px, 72vw);}
   #intro-logo{width:min(200px, 64vw);}
