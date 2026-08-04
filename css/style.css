@@ -139,6 +139,9 @@ html[data-lang="en"] #top-bar.on-dark #lang-toggle .lang-opt[data-lang="en"]{col
   z-index:60;
   display:flex;align-items:center;
   transition:width .5s var(--ease);
+  overflow:hidden; /* the (opacity:0, but still laid out) title text used to
+    spill way past the 60px column and silently steal clicks meant for
+    whatever sits underneath it, like the logo in the top bar */
 }
 /* The real hit-box grows with the panel so moving the mouse onto a revealed
    title never counts as "leaving" the nav (which would schedule a close). */
