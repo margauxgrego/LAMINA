@@ -158,18 +158,18 @@ html[data-lang="en"] #top-bar.on-dark #lang-toggle .lang-opt[data-lang="en"]{col
 
 .side-nav-track{
   display:flex;flex-direction:column;justify-content:center;
-  gap:clamp(9px,2vh,18px);
+  gap:clamp(13px,2.6vh,25px);
   padding-left:26px;
   height:100%;
 }
 .nav-item{
   display:flex;align-items:center;
-  height:16px;
-  padding:7px 40px 7px 0;
-  margin:-7px -40px -7px 0;
+  height:18px;
+  padding:8px 40px 8px 0;
+  margin:-8px -40px -8px 0;
 }
 .nav-line{
-  width:16px;height:1.5px;
+  width:22px;height:1.5px;
   background:var(--nav-line);
   transition:width .45s var(--ease), background-color .45s var(--ease);
   flex-shrink:0;
@@ -182,17 +182,17 @@ html[data-lang="en"] #top-bar.on-dark #lang-toggle .lang-opt[data-lang="en"]{col
   transition:opacity .35s var(--ease), transform .35s var(--ease);
   white-space:nowrap;
 }
-.nav-num{font-family:var(--sans);font-weight:500;font-size:.68rem;letter-spacing:.08em;color:var(--fg-faint);}
-.nav-title{font-family:var(--sans);font-weight:600;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--fg-dim);transition:color .3s var(--ease);}
+.nav-num{font-family:var(--sans);font-weight:500;font-size:.76rem;letter-spacing:.08em;color:var(--fg-faint);}
+.nav-title{font-family:var(--sans);font-weight:600;font-size:.84rem;letter-spacing:.05em;text-transform:uppercase;color:var(--fg-dim);transition:color .3s var(--ease);}
 
 /* Opening the panel (mouse approach on desktop, edge-swipe on touch) reveals
    every title at once; each one darkens on its own hover, the current
    section's title stays dark to mark your place. */
 #side-nav.hovering .nav-text{opacity:1;transform:translateX(0);}
-#side-nav.hovering .nav-item:hover .nav-line{width:30px;background:var(--fg);}
+#side-nav.hovering .nav-item:hover .nav-line{width:38px;background:var(--fg);}
 #side-nav.hovering .nav-item:hover .nav-title{color:var(--fg);}
 
-.nav-item.active .nav-line{width:30px;background:var(--fg);}
+.nav-item.active .nav-line{width:38px;background:var(--fg);}
 .nav-item.active .nav-title{color:var(--fg);}
 
 #side-nav.on-dark::before{background:linear-gradient(90deg, rgba(28,28,28,.96) 0%, rgba(28,28,28,.82) 55%, rgba(28,28,28,0) 100%);}

@@ -47,10 +47,15 @@ sections.forEach(function(sec){
 });
 
 /* ---------- side nav open/close ----------
-   Desktop (and any device with a real pointer): opens as soon as the mouse
-   approaches the column of ticks, closes a moment after it leaves so it
-   doesn't flicker. Touch: opened/closed with a horizontal edge swipe. */
-var NAV_CLOSE_DELAY = 350; /* ms */
+   Desktop (and any device with a real pointer): opens once the mouse gets
+   within ~2cm of the ticks themselves — bounded top-to-bottom by the first
+   and last tick, not the full page height, so hovering near the logo at the
+   top doesn't trigger it. Once open, the hot zone grows to cover the
+   revealed panel so reading/clicking a title doesn't close it early. Closes
+   a moment after the mouse truly leaves so it doesn't flicker.
+   Touch: opened/closed with a horizontal edge swipe (below). */
+var NAV_CLOSE_DELAY = 350;   /* ms */
+var NAV_APPROACH_PX = 76;    /* ~2cm at 96dpi (1cm = 37.8px) */
 var navCloseTimer = null;
 
 function openSideNav(){
@@ -65,9 +70,28 @@ function scheduleSideNavClose(){
   navCloseTimer = setTimeout(closeSideNav, NAV_CLOSE_DELAY);
 }
 
-if(sideNav){
-  sideNav.addEventListener("mouseenter", openSideNav);
-  sideNav.addEventListener("mouseleave", scheduleSideNavClose);
+if(!isTouch && sideNav && navItems.length){
+  window.addEventListener("mousemove", function(e){
+    var isOpen = sideNav.classList.contains("hovering");
+    var r, rightEdge;
+    if(isOpen){
+      /* #side-nav itself widens to the open panel's width once .hovering is
+         applied (see CSS), so reusing its rect gives the "stay open" zone —
+         it also matches the full-height backdrop panel that's visible. */
+      r = sideNav.getBoundingClientRect();
+      rightEdge = r.right;
+    } else {
+      /* Bound by the first and last tick's own line, not the track element
+         (which stays full-height/full-width in the layout even at rest,
+         since its hidden title text is opacity:0, not display:none). */
+      var firstR = navItems[0].line.getBoundingClientRect();
+      var lastR = navItems[navItems.length - 1].line.getBoundingClientRect();
+      r = { top: firstR.top, bottom: lastR.bottom };
+      rightEdge = Math.max(firstR.right, lastR.right) + NAV_APPROACH_PX;
+    }
+    var inZone = e.clientX >= 0 && e.clientX <= rightEdge && e.clientY >= r.top && e.clientY <= r.bottom;
+    if(inZone){ openSideNav(); } else { scheduleSideNavClose(); }
+  }, {passive:true});
 }
 
 /* ---------- side nav: open/close with a horizontal swipe (phone & tablet) ---------- */
