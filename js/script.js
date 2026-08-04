@@ -4,6 +4,9 @@
 /* ---------- touch detection ---------- */
 var isTouch = window.matchMedia("(hover: none), (pointer: coarse)").matches;
 if(isTouch){ document.documentElement.classList.add("touch"); }
+/* Phones keep the side nav as a passive scroll indicator; tablets (wider
+   touch screens) get the full nav back, opened by tapping a tick directly. */
+var isTabletTouch = isTouch && window.innerWidth > 640;
 
 /* ---------- footer year ---------- */
 var yearEl = document.getElementById("year");
@@ -12,6 +15,7 @@ if(yearEl){ yearEl.textContent = new Date().getFullYear(); }
 /* ---------- build side nav from sections ---------- */
 var sections = Array.prototype.slice.call(document.querySelectorAll("main > section[data-num], #hero"));
 var track = document.getElementById("side-nav-track");
+var sideNav = document.getElementById("side-nav");
 var navItems = [];
 
 sections.forEach(function(sec){
@@ -34,8 +38,12 @@ sections.forEach(function(sec){
   item.appendChild(text);
   track.appendChild(item);
 
-  if(!isTouch){
+  if(!isTouch || isTabletTouch){
     item.addEventListener("click", function(){
+      if(isTabletTouch){
+        navItems.forEach(function(n){ n.el.classList.toggle("peek", n.el === item); });
+        sideNav.classList.add("hovering");
+      }
       sec.scrollIntoView({behavior:"smooth", block:"start"});
     });
   }
@@ -43,9 +51,7 @@ sections.forEach(function(sec){
   navItems.push({el:item, line:line, section:sec});
 });
 
-/* ---------- side nav: reveal the title whose own line the mouse is nearest to ---------- */
-var sideNav = document.getElementById("side-nav");
-
+/* ---------- side nav: reveal the title whose own line the mouse is nearest to (desktop only) ---------- */
 var NAV_HIT_RADIUS = 17; /* px — mouse must be within this radius of a tick's own center to reveal it */
 
 if(!isTouch && sideNav){
@@ -74,9 +80,11 @@ if(!isTouch && sideNav){
   });
 }
 
-/* On touch devices (phone & tablet) the side nav is a passive scroll
-   indicator only: no tap-to-open menu, no titles, no navigation on tap.
-   The active tick still travels up/down with scroll via activeObserver below. */
+/* On phones the side nav stays a passive scroll indicator only (no titles,
+   no tap navigation — see the CSS touch+max-width:640px rules). On tablets
+   it behaves like desktop's, just opened by tapping a tick instead of
+   hovering (handled in the click listener above). The active tick always
+   travels up/down with scroll via activeObserver below. */
 
 /* ---------- active section highlight ---------- */
 var activeObserver = new IntersectionObserver(function(entries){

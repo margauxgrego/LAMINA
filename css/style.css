@@ -186,13 +186,9 @@ html[data-lang="en"] #top-bar.on-dark #lang-toggle .lang-opt[data-lang="en"]{col
 #side-nav.on-dark .nav-num{color:var(--dark-fg-dim);}
 #side-nav.on-dark .nav-title{color:var(--dark-fg);}
 
-/* Phone & tablet (touch): passive scroll indicator only — no menu, no
-   titles, nothing clickable. Only the active tick still travels with scroll. */
-html.touch #side-nav::before{display:none;}
-html.touch .nav-text{display:none;}
-html.touch .nav-item{pointer-events:none;padding:0;margin:0;}
-html.touch .nav-line{width:6px;}
-html.touch .nav-item.active .nav-line{width:14px;}
+/* Tablets (touch, wider than a phone) keep the full nav — titles + click —
+   just opened by tapping a tick instead of hovering (see script.js). */
+html.touch .nav-item{cursor:default;}
 
 @media (max-width:640px){
   #side-nav{width:30px;}
@@ -203,6 +199,14 @@ html.touch .nav-item.active .nav-line{width:14px;}
   .nav-num{font-size:.72rem;}
   .nav-title{font-size:.76rem;}
   #side-nav.hovering::before{width:min(300px, 82vw);}
+
+  /* Phones (touch, ≤640px): passive scroll indicator only — no menu, no
+     titles, nothing clickable. Only the active tick still travels with scroll. */
+  html.touch #side-nav::before{display:none;}
+  html.touch .nav-text{display:none;}
+  html.touch .nav-item{pointer-events:none;padding:0;margin:0;}
+  html.touch .nav-line{width:6px;}
+  html.touch .nav-item.active .nav-line{width:14px;}
 }
 
 /* ============ LAYOUT ============ */
