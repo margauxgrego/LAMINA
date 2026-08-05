@@ -255,12 +255,17 @@ html.touch #side-nav.hovering .nav-line{margin-top:7px; align-self:flex-start;}
 html.touch #side-nav.hovering .nav-text{white-space:normal;}
 html.touch #side-nav.hovering .nav-title{white-space:normal;}
 html.touch #side-nav.hovering::before{width:min(340px, 92vw);}
+/* Open panel packs the titles closer together than the wide resting-tick
+   gap above (that width is there for a comfortable drag range, not for
+   reading a list of titles). */
+html.touch #side-nav.hovering .side-nav-track{gap:16px;}
 
 /* Tablets (touch, wider than a phone) get extra breathing room between ticks. */
 @media (min-width:641px){
   html.touch .side-nav-track{gap:46px;}
   html.touch #side-nav.hovering{width:min(420px, 70vw);}
   html.touch #side-nav.hovering::before{width:min(420px, 70vw);}
+  html.touch #side-nav.hovering .side-nav-track{gap:20px;}
 }
 
 /* ============ LAYOUT ============ */

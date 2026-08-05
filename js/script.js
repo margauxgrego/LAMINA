@@ -121,7 +121,7 @@ if(isTouch && sideNav){
    scroll and the ghost click it would otherwise fire on release. */
 if(isTouch && sideNav && navItems.length){
   var DRAG_THRESHOLD = 6; /* px */
-  var SCRUB_EASE = 0.28; /* same trailing-follow feel as the cursor dot above */
+  var SCRUB_EASE = 0.17; /* lower = more trailing smoothness, same idea as the cursor dot above */
   var dragStartY = 0, isDragging = false;
   var targetY = 0, currentY = 0, scrubRaf = null;
 
