@@ -170,17 +170,26 @@ var activeObserver = new IntersectionObserver(function(entries){
 
 sections.forEach(function(sec){ activeObserver.observe(sec); });
 
-/* ---------- scroll reveal ---------- */
-var revealObserver = new IntersectionObserver(function(entries){
-  entries.forEach(function(entry){
-    if(entry.isIntersecting){
-      entry.target.classList.add("in-view");
-      revealObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
+/* ---------- scroll reveal ----------
+   Touch skips this entirely: dragging the side nav can jump the page
+   instantly to anywhere on the page, and the fade/slide-in transition
+   (plus its IntersectionObserver) can't keep up with that — content would
+   flash in or sit invisible for a moment after a scrub. Content is just
+   shown immediately on touch instead of fading in on scroll. */
+if(isTouch){
+  document.querySelectorAll(".reveal").forEach(function(el){ el.classList.add("in-view"); });
+} else {
+  var revealObserver = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add("in-view");
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
 
-document.querySelectorAll(".reveal").forEach(function(el){ revealObserver.observe(el); });
+  document.querySelectorAll(".reveal").forEach(function(el){ revealObserver.observe(el); });
+}
 
 /* ---------- language toggle (FR / EN) ---------- */
 var i18nEls = Array.prototype.slice.call(document.querySelectorAll("[data-en]"));
