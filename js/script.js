@@ -121,18 +121,40 @@ if(isTouch && sideNav){
    scroll and the ghost click it would otherwise fire on release. */
 if(isTouch && sideNav && navItems.length){
   var DRAG_THRESHOLD = 6; /* px */
+  var SCRUB_EASE = 0.28; /* same trailing-follow feel as the cursor dot above */
   var dragStartY = 0, isDragging = false;
+  var targetY = 0, currentY = 0, scrubRaf = null;
 
-  function scrubTo(clientY){
+  function fracForClientY(clientY){
     var firstR = navItems[0].line.getBoundingClientRect();
     var lastR = navItems[navItems.length - 1].line.getBoundingClientRect();
     var top = firstR.top, bottom = lastR.bottom;
     var frac = (clientY - top) / (bottom - top);
-    frac = Math.max(0, Math.min(1, frac));
+    return Math.max(0, Math.min(1, frac));
+  }
+
+  function scrubStep(){
+    currentY += (targetY - currentY) * SCRUB_EASE;
+    if(Math.abs(targetY - currentY) < 0.5){ currentY = targetY; }
+    /* "instant" bypasses the page's own scroll-behavior:smooth — the lerp
+       above already provides the smoothing, in a way that keeps tracking
+       new finger positions instead of committing to a fixed-duration ease
+       toward a single stale target. */
+    window.scrollTo({top: currentY, left: 0, behavior: "instant"});
+    if(isDragging || currentY !== targetY){
+      scrubRaf = requestAnimationFrame(scrubStep);
+    } else {
+      scrubRaf = null;
+    }
+  }
+
+  function setScrubTarget(clientY){
     var max = document.documentElement.scrollHeight - window.innerHeight;
-    /* "instant" bypasses the page's own scroll-behavior:smooth so the page
-       tracks the finger directly instead of easing/lagging behind it. */
-    window.scrollTo({top: frac * max, left: 0, behavior: "instant"});
+    targetY = fracForClientY(clientY) * max;
+    if(!scrubRaf){
+      currentY = window.scrollY;
+      scrubRaf = requestAnimationFrame(scrubStep);
+    }
   }
 
   sideNav.addEventListener("touchstart", function(e){
@@ -149,7 +171,7 @@ if(isTouch && sideNav && navItems.length){
       isDragging = true;
     }
     e.preventDefault();
-    scrubTo(y);
+    setScrubTarget(y);
   }, {passive:false});
 
   sideNav.addEventListener("touchend", function(){ isDragging = false; });
