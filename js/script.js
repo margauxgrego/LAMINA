@@ -35,12 +35,13 @@ sections.forEach(function(sec){
   item.appendChild(text);
   track.appendChild(item);
 
-  item.addEventListener("click", function(){
-    /* On touch, the nav is closed by default (see the swipe handler below) —
-       a stray tap shouldn't navigate until the panel has been swiped open. */
+  item.addEventListener("click", function(e){
+    /* On touch, the nav is closed by default — a first tap only opens it
+       (see the handler below, reached by letting this click bubble up). */
     if(isTouch && !sideNav.classList.contains("hovering")) return;
     sec.scrollIntoView({behavior:"smooth", block:"start"});
     closeSideNav();
+    if(isTouch) e.stopPropagation(); /* don't let this same tap re-open it */
   });
 
   navItems.push({el:item, line:line, section:sec});
@@ -53,7 +54,7 @@ sections.forEach(function(sec){
    top doesn't trigger it. Once open, the hot zone grows to cover the
    revealed panel so reading/clicking a title doesn't close it early. Closes
    a moment after the mouse truly leaves so it doesn't flicker.
-   Touch: opened/closed with a horizontal edge swipe (below). */
+   Touch: opened by a tap, closed by a tap outside or on a title (below). */
 var NAV_CLOSE_DELAY = 350;   /* ms */
 var NAV_APPROACH_PX = 76;    /* ~2cm at 96dpi (1cm = 37.8px) */
 var navCloseTimer = null;
@@ -94,40 +95,19 @@ if(!isTouch && sideNav && navItems.length){
   }, {passive:true});
 }
 
-/* ---------- side nav: open/close with a horizontal swipe (phone & tablet) ---------- */
+/* ---------- side nav: open with a tap, close with a tap outside (phone & tablet) ----------
+   A tap anywhere on the (closed) nav opens it, showing every title. Tapping a
+   title navigates and closes it (handled above). Tapping anywhere else closes
+   it again without navigating. */
 if(isTouch && sideNav){
-  var swipeStartX = 0, swipeStartY = 0, swipeTracking = false, swipeActedOn = false;
-  var SWIPE_EDGE_ZONE = 48;   /* px from the left edge an opening swipe must start in */
-  var SWIPE_THRESHOLD = 45;   /* px of horizontal travel needed to trigger */
-
-  document.addEventListener("touchstart", function(e){
-    var t = e.touches[0];
-    swipeStartX = t.clientX;
-    swipeStartY = t.clientY;
-    swipeTracking = true;
-    swipeActedOn = false;
-  }, {passive:true});
-
-  document.addEventListener("touchmove", function(e){
-    if(!swipeTracking || swipeActedOn) return;
-    var t = e.touches[0];
-    var dx = t.clientX - swipeStartX;
-    var dy = t.clientY - swipeStartY;
-    if(Math.abs(dx) < Math.abs(dy)) return; /* vertical scroll, ignore */
-
-    var isOpen = sideNav.classList.contains("hovering");
-    if(!isOpen && swipeStartX <= SWIPE_EDGE_ZONE && dx > SWIPE_THRESHOLD){
-      openSideNav();
-      swipeActedOn = true;
-    } else if(isOpen && dx < -SWIPE_THRESHOLD){
+  sideNav.addEventListener("click", function(){
+    if(!sideNav.classList.contains("hovering")){ openSideNav(); }
+  });
+  document.addEventListener("click", function(e){
+    if(sideNav.classList.contains("hovering") && !sideNav.contains(e.target)){
       closeSideNav();
-      swipeActedOn = true;
     }
-  }, {passive:true});
-
-  document.addEventListener("touchend", function(){
-    swipeTracking = false;
-  }, {passive:true});
+  });
 }
 
 /* ---------- active section highlight ---------- */
