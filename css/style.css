@@ -226,20 +226,18 @@ html[data-lang="en"] #top-bar.on-dark #lang-toggle .lang-opt[data-lang="en"]{col
 #side-nav.on-dark .nav-item.active .nav-title,
 #side-nav.on-dark.hovering .nav-item:hover .nav-title{color:var(--dark-fg);}
 
-/* Phone, and tablet held upright (portrait + no real hover): condensed
-   resting ticks. Still fully interactive — opened by an edge swipe instead
-   of a mouse approach (see script.js) — showing every title just like desktop. */
-@media (max-width:640px), (min-width:641px) and (orientation:portrait) and (hover:none){
-  #side-nav{width:30px;}
-  #side-nav.hovering{width:min(300px, 82vw);}
-  .side-nav-track{padding-left:12px;gap:9px;}
-  .nav-line{width:9px;}
-  .nav-item{padding:10px 18px 10px 0;margin:-10px -18px -10px 0;}
-  .nav-item.active .nav-line{width:18px;}
-  .nav-num{font-size:.72rem;}
-  .nav-title{font-size:.76rem;}
-  #side-nav.hovering::before{width:min(300px, 82vw);}
-}
+/* Any touch device — phone or tablet, whatever the orientation — gets the
+   exact same side nav: condensed resting ticks, generously spaced, opened by
+   an edge swipe (see script.js), showing every title just like desktop. */
+html.touch #side-nav{width:30px;}
+html.touch #side-nav.hovering{width:min(300px, 82vw);}
+html.touch .side-nav-track{padding-left:12px;gap:17px;}
+html.touch .nav-line{width:12px;}
+html.touch .nav-item{padding:10px 18px 10px 0;margin:-10px -18px -10px 0;}
+html.touch .nav-item.active .nav-line{width:24px;}
+html.touch .nav-num{font-size:.72rem;}
+html.touch .nav-title{font-size:.78rem;}
+html.touch #side-nav.hovering::before{width:min(300px, 82vw);}
 
 /* ============ LAYOUT ============ */
 main{position:relative;z-index:2;}

@@ -40,7 +40,7 @@ sections.forEach(function(sec){
        a stray tap shouldn't navigate until the panel has been swiped open. */
     if(isTouch && !sideNav.classList.contains("hovering")) return;
     sec.scrollIntoView({behavior:"smooth", block:"start"});
-    if(isTouch){ closeSideNav(); }
+    closeSideNav();
   });
 
   navItems.push({el:item, line:line, section:sec});
