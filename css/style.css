@@ -227,17 +227,34 @@ html[data-lang="en"] #top-bar.on-dark #lang-toggle .lang-opt[data-lang="en"]{col
 #side-nav.on-dark.hovering .nav-item:hover .nav-title{color:var(--dark-fg);}
 
 /* Any touch device — phone or tablet, whatever the orientation — gets the
-   exact same side nav: condensed resting ticks, generously spaced, opened by
-   an edge swipe (see script.js), showing every title just like desktop. */
-html.touch #side-nav{width:30px;}
-html.touch #side-nav.hovering{width:min(300px, 82vw);}
-html.touch .side-nav-track{padding-left:12px;gap:17px;}
-html.touch .nav-line{width:12px;}
-html.touch .nav-item{padding:10px 18px 10px 0;margin:-10px -18px -10px 0;}
+   same side nav: condensed resting ticks, opened by a tap (see script.js),
+   showing every title just like desktop. Long French titles don't fit on one
+   line at any reasonable width, so titles wrap instead of being cut off. */
+html.touch{ touch-action:pan-y; } /* belt-and-braces: a swipe anywhere, including
+  over the closed nav strip, always scrolls the page — nothing here should
+  ever capture that gesture */
+html.touch #side-nav{width:30px; touch-action:pan-y;}
+html.touch #side-nav.hovering{width:min(340px, 92vw);}
+html.touch .side-nav-track{padding-left:12px;gap:20px;}
+html.touch .nav-line{width:12px; margin-top:7px; align-self:flex-start;}
+html.touch .nav-item{
+  height:auto;
+  align-items:flex-start;
+  padding:10px 18px 10px 0;margin:-10px -18px -10px 0;
+}
 html.touch .nav-item.active .nav-line{width:24px;}
 html.touch .nav-num{font-size:.72rem;}
 html.touch .nav-title{font-size:.78rem;}
-html.touch #side-nav.hovering::before{width:min(300px, 82vw);}
+html.touch .nav-text{white-space:normal;align-items:baseline;}
+html.touch .nav-title{white-space:normal;}
+html.touch #side-nav.hovering::before{width:min(340px, 92vw);}
+
+/* Tablets (touch, wider than a phone) get extra breathing room between ticks. */
+@media (min-width:641px){
+  html.touch .side-nav-track{gap:30px;}
+  html.touch #side-nav.hovering{width:min(420px, 70vw);}
+  html.touch #side-nav.hovering::before{width:min(420px, 70vw);}
+}
 
 /* ============ LAYOUT ============ */
 main{position:relative;z-index:2;}
