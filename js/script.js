@@ -111,21 +111,23 @@ if(isTouch && sideNav){
 }
 
 /* ---------- touch: drag the closed nav to scrub the page ----------
-   The bar spans the full viewport height (top to bottom), so a finger
-   dragged along it maps 1:1 to how far down the page you are — drag to the
-   bottom of the bar and the page goes to its own bottom, and back up again.
-   A plain tap (no real movement) still falls through to the click handler
-   above and opens the nav as usual; only once the finger actually moves past
-   a small threshold does this take over as a drag, at which point
-   preventDefault also suppresses the browser's own scroll and the ghost
-   click it would otherwise fire on release. */
-if(isTouch && sideNav){
+   The mapped range is the ticks themselves — the first tick to the last —
+   not the full screen height, so dragging to the last tick reaches the
+   bottom of the page and dragging to the first tick reaches the top, same
+   as the desktop hot-zone below. A plain tap (no real movement) still falls
+   through to the click handler above and opens the nav as usual; only once
+   the finger actually moves past a small threshold does this take over as a
+   drag, at which point preventDefault also suppresses the browser's own
+   scroll and the ghost click it would otherwise fire on release. */
+if(isTouch && sideNav && navItems.length){
   var DRAG_THRESHOLD = 6; /* px */
   var dragStartY = 0, isDragging = false;
 
   function scrubTo(clientY){
-    var r = sideNav.getBoundingClientRect();
-    var frac = (clientY - r.top) / r.height;
+    var firstR = navItems[0].line.getBoundingClientRect();
+    var lastR = navItems[navItems.length - 1].line.getBoundingClientRect();
+    var top = firstR.top, bottom = lastR.bottom;
+    var frac = (clientY - top) / (bottom - top);
     frac = Math.max(0, Math.min(1, frac));
     var max = document.documentElement.scrollHeight - window.innerHeight;
     /* "instant" bypasses the page's own scroll-behavior:smooth so the page
