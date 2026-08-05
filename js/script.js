@@ -110,6 +110,50 @@ if(isTouch && sideNav){
   });
 }
 
+/* ---------- touch: drag the closed nav to scrub the page ----------
+   The bar spans the full viewport height (top to bottom), so a finger
+   dragged along it maps 1:1 to how far down the page you are — drag to the
+   bottom of the bar and the page goes to its own bottom, and back up again.
+   A plain tap (no real movement) still falls through to the click handler
+   above and opens the nav as usual; only once the finger actually moves past
+   a small threshold does this take over as a drag, at which point
+   preventDefault also suppresses the browser's own scroll and the ghost
+   click it would otherwise fire on release. */
+if(isTouch && sideNav){
+  var DRAG_THRESHOLD = 6; /* px */
+  var dragStartY = 0, isDragging = false;
+
+  function scrubTo(clientY){
+    var r = sideNav.getBoundingClientRect();
+    var frac = (clientY - r.top) / r.height;
+    frac = Math.max(0, Math.min(1, frac));
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    /* "instant" bypasses the page's own scroll-behavior:smooth so the page
+       tracks the finger directly instead of easing/lagging behind it. */
+    window.scrollTo({top: frac * max, left: 0, behavior: "instant"});
+  }
+
+  sideNav.addEventListener("touchstart", function(e){
+    if(sideNav.classList.contains("hovering")) return;
+    dragStartY = e.touches[0].clientY;
+    isDragging = false;
+  }, {passive:true});
+
+  sideNav.addEventListener("touchmove", function(e){
+    if(sideNav.classList.contains("hovering")) return;
+    var y = e.touches[0].clientY;
+    if(!isDragging){
+      if(Math.abs(y - dragStartY) < DRAG_THRESHOLD) return;
+      isDragging = true;
+    }
+    e.preventDefault();
+    scrubTo(y);
+  }, {passive:false});
+
+  sideNav.addEventListener("touchend", function(){ isDragging = false; });
+  sideNav.addEventListener("touchcancel", function(){ isDragging = false; });
+}
+
 /* ---------- active section highlight ---------- */
 var activeObserver = new IntersectionObserver(function(entries){
   entries.forEach(function(entry){
