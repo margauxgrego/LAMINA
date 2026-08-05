@@ -110,6 +110,84 @@ if(isTouch && sideNav){
   });
 }
 
+/* ---------- touch: drag the closed nav to scrub the page ----------
+   The mapped range is the ticks themselves — the first tick to the last —
+   not the full screen height, so dragging to the last tick reaches the
+   bottom of the page and dragging to the first tick reaches the top, same
+   as the desktop hot-zone below. A plain tap (no real movement) still falls
+   through to the click handler above and opens the nav as usual; only once
+   the finger actually moves past a small threshold does this take over as a
+   drag, at which point preventDefault also suppresses the browser's own
+   scroll and the ghost click it would otherwise fire on release. */
+if(isTouch && sideNav && navItems.length){
+  var DRAG_THRESHOLD = 6; /* px */
+  var SCRUB_EASE = 0.17; /* lower = more trailing smoothness, same idea as the cursor dot above */
+  var dragStartY = 0, isDragging = false;
+  var targetY = 0, currentY = 0, scrubRaf = null;
+
+  function fracForClientY(clientY){
+    var firstR = navItems[0].line.getBoundingClientRect();
+    var lastR = navItems[navItems.length - 1].line.getBoundingClientRect();
+    var top = firstR.top, bottom = lastR.bottom;
+    var frac = (clientY - top) / (bottom - top);
+    return Math.max(0, Math.min(1, frac));
+  }
+
+  function scrubStep(){
+    var step = (targetY - currentY) * SCRUB_EASE;
+    /* A fast drag across a long page can otherwise ask for a huge jump in a
+       single frame — more new content than the browser has time to paint
+       before that frame is shown, which is what flashes blank/white. Capping
+       the per-frame move to roughly a screen's height forces the scroll
+       through the in-between positions instead, giving it time to paint as
+       it goes, however fast the finger moves. */
+    var maxStep = window.innerHeight * 0.9;
+    if(step > maxStep){ step = maxStep; }
+    else if(step < -maxStep){ step = -maxStep; }
+    currentY += step;
+    if(Math.abs(targetY - currentY) < 0.5){ currentY = targetY; }
+    /* "instant" bypasses the page's own scroll-behavior:smooth — the lerp
+       above already provides the smoothing, in a way that keeps tracking
+       new finger positions instead of committing to a fixed-duration ease
+       toward a single stale target. */
+    window.scrollTo({top: currentY, left: 0, behavior: "instant"});
+    if(isDragging || currentY !== targetY){
+      scrubRaf = requestAnimationFrame(scrubStep);
+    } else {
+      scrubRaf = null;
+    }
+  }
+
+  function setScrubTarget(clientY){
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    targetY = fracForClientY(clientY) * max;
+    if(!scrubRaf){
+      currentY = window.scrollY;
+      scrubRaf = requestAnimationFrame(scrubStep);
+    }
+  }
+
+  sideNav.addEventListener("touchstart", function(e){
+    if(sideNav.classList.contains("hovering")) return;
+    dragStartY = e.touches[0].clientY;
+    isDragging = false;
+  }, {passive:true});
+
+  sideNav.addEventListener("touchmove", function(e){
+    if(sideNav.classList.contains("hovering")) return;
+    var y = e.touches[0].clientY;
+    if(!isDragging){
+      if(Math.abs(y - dragStartY) < DRAG_THRESHOLD) return;
+      isDragging = true;
+    }
+    e.preventDefault();
+    setScrubTarget(y);
+  }, {passive:false});
+
+  sideNav.addEventListener("touchend", function(){ isDragging = false; });
+  sideNav.addEventListener("touchcancel", function(){ isDragging = false; });
+}
+
 /* ---------- active section highlight ---------- */
 var activeObserver = new IntersectionObserver(function(entries){
   entries.forEach(function(entry){
@@ -124,17 +202,26 @@ var activeObserver = new IntersectionObserver(function(entries){
 
 sections.forEach(function(sec){ activeObserver.observe(sec); });
 
-/* ---------- scroll reveal ---------- */
-var revealObserver = new IntersectionObserver(function(entries){
-  entries.forEach(function(entry){
-    if(entry.isIntersecting){
-      entry.target.classList.add("in-view");
-      revealObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
+/* ---------- scroll reveal ----------
+   Touch skips this entirely: dragging the side nav can jump the page
+   instantly to anywhere on the page, and the fade/slide-in transition
+   (plus its IntersectionObserver) can't keep up with that — content would
+   flash in or sit invisible for a moment after a scrub. Content is just
+   shown immediately on touch instead of fading in on scroll. */
+if(isTouch){
+  document.querySelectorAll(".reveal").forEach(function(el){ el.classList.add("in-view"); });
+} else {
+  var revealObserver = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add("in-view");
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
 
-document.querySelectorAll(".reveal").forEach(function(el){ revealObserver.observe(el); });
+  document.querySelectorAll(".reveal").forEach(function(el){ revealObserver.observe(el); });
+}
 
 /* ---------- language toggle (FR / EN) ---------- */
 var i18nEls = Array.prototype.slice.call(document.querySelectorAll("[data-en]"));

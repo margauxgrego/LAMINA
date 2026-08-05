@@ -227,17 +227,46 @@ html[data-lang="en"] #top-bar.on-dark #lang-toggle .lang-opt[data-lang="en"]{col
 #side-nav.on-dark.hovering .nav-item:hover .nav-title{color:var(--dark-fg);}
 
 /* Any touch device — phone or tablet, whatever the orientation — gets the
-   exact same side nav: condensed resting ticks, generously spaced, opened by
-   an edge swipe (see script.js), showing every title just like desktop. */
-html.touch #side-nav{width:30px;}
-html.touch #side-nav.hovering{width:min(300px, 82vw);}
-html.touch .side-nav-track{padding-left:12px;gap:17px;}
+   same side nav: condensed resting ticks, opened by a tap (see script.js),
+   showing every title just like desktop. Long French titles don't fit on one
+   line at any reasonable width, so once open, titles wrap instead of being
+   cut off. The resting (closed) ticks stay single-line/fixed-height — the
+   wrap only kicks in while open, otherwise the invisible (opacity:0) wrapped
+   title text inflates each tick's box and blows the gap between ticks way
+   out. touch-action:none hands the whole gesture to script.js, which drags
+   the page's scroll position directly off the touch point (see the "touch:
+   drag the closed nav to scrub" block there) instead of the browser's own
+   panning. */
+html.touch #side-nav{width:30px; touch-action:none;}
+html.touch #side-nav.hovering{width:min(340px, 92vw);}
+html.touch .side-nav-track{padding-left:12px;gap:32px;}
 html.touch .nav-line{width:12px;}
-html.touch .nav-item{padding:10px 18px 10px 0;margin:-10px -18px -10px 0;}
+html.touch .nav-item{padding:8px 18px 8px 0;margin:-8px -18px -8px 0;}
 html.touch .nav-item.active .nav-line{width:24px;}
 html.touch .nav-num{font-size:.72rem;}
 html.touch .nav-title{font-size:.78rem;}
-html.touch #side-nav.hovering::before{width:min(300px, 82vw);}
+html.touch .nav-text{align-items:baseline;}
+html.touch #side-nav.hovering .nav-item{
+  height:auto;
+  align-items:flex-start;
+  padding:10px 18px 10px 0;margin:-10px -18px -10px 0;
+}
+html.touch #side-nav.hovering .nav-line{margin-top:7px; align-self:flex-start;}
+html.touch #side-nav.hovering .nav-text{white-space:normal;}
+html.touch #side-nav.hovering .nav-title{white-space:normal;}
+html.touch #side-nav.hovering::before{width:min(340px, 92vw);}
+/* Open panel packs the titles closer together than the wide resting-tick
+   gap above (that width is there for a comfortable drag range, not for
+   reading a list of titles). */
+html.touch #side-nav.hovering .side-nav-track{gap:16px;}
+
+/* Tablets (touch, wider than a phone) get extra breathing room between ticks. */
+@media (min-width:641px){
+  html.touch .side-nav-track{gap:46px;}
+  html.touch #side-nav.hovering{width:min(420px, 70vw);}
+  html.touch #side-nav.hovering::before{width:min(420px, 70vw);}
+  html.touch #side-nav.hovering .side-nav-track{gap:20px;}
+}
 
 /* ============ LAYOUT ============ */
 main{position:relative;z-index:2;}
