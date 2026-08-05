@@ -134,7 +134,17 @@ if(isTouch && sideNav && navItems.length){
   }
 
   function scrubStep(){
-    currentY += (targetY - currentY) * SCRUB_EASE;
+    var step = (targetY - currentY) * SCRUB_EASE;
+    /* A fast drag across a long page can otherwise ask for a huge jump in a
+       single frame — more new content than the browser has time to paint
+       before that frame is shown, which is what flashes blank/white. Capping
+       the per-frame move to roughly a screen's height forces the scroll
+       through the in-between positions instead, giving it time to paint as
+       it goes, however fast the finger moves. */
+    var maxStep = window.innerHeight * 0.9;
+    if(step > maxStep){ step = maxStep; }
+    else if(step < -maxStep){ step = -maxStep; }
+    currentY += step;
     if(Math.abs(targetY - currentY) < 0.5){ currentY = targetY; }
     /* "instant" bypasses the page's own scroll-behavior:smooth — the lerp
        above already provides the smoothing, in a way that keeps tracking
