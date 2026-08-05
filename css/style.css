@@ -102,11 +102,30 @@ h1,h2,h3,p{margin:0;}
   pointer-events:auto;
   cursor:none;
 }
-.top-logo{display:block;height:27px;width:auto;transition:filter .4s var(--ease);}
+.top-logo{display:block;height:32px;width:auto;transition:filter .4s var(--ease);}
+.top-left{display:flex;align-items:center;gap:20px;}
+.top-contacts{display:flex;align-items:center;gap:14px;pointer-events:auto;}
+.top-contact-link{
+  display:block;
+  width:16px;height:16px;
+  color:var(--fg-dim);
+  cursor:none;
+  transition:color .3s var(--ease);
+}
+.top-contact-link svg{width:100%;height:100%;display:block;}
+.top-contact-link:hover{color:var(--fg);}
 .top-right{display:flex;align-items:center;gap:22px;pointer-events:none;}
 .top-tag{font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-dim);transition:color .4s var(--ease);}
 #top-bar.on-dark .top-logo{filter:invert(1) brightness(1.3);}
 #top-bar.on-dark .top-tag{color:var(--dark-fg-dim);}
+#top-bar.on-dark .top-contact-link{color:var(--dark-fg-dim);}
+#top-bar.on-dark .top-contact-link:hover{color:var(--dark-fg);}
+
+@media (max-width:640px), (min-width:641px) and (orientation:portrait) and (hover:none){
+  .top-left{gap:12px;}
+  .top-contacts{gap:10px;}
+  .top-contact-link{width:14px;height:14px;}
+}
 @media (max-width:640px), (min-width:641px) and (orientation:portrait) and (hover:none){ .top-tag{display:none;} }
 
 #lang-toggle{
