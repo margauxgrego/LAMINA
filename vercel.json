@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.laminacards.com" }],
+      "destination": "https://laminacards.com/:path*",
+      "permanent": true
+    }
+  ]
+}
